@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>灯塔自动化-单窗口测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            width: 380px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eaeaea;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e94560;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            color: #e94560;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .header .version {
+            font-size: 11px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .status-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(233, 69, 96, 0.2);
+        }
+        
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .status-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .status-label {
+            font-size: 13px;
+            color: #888;
+        }
+        
+        .status-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .status-value.running {
+            color: #22c55e;
+        }
+        
+        .status-value.stopped {
+            color: #888;
+        }
+        
+        .status-value.error {
+            color: #ef4444;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .btn-start {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+        }
+        
+        .btn-stop {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .logs-section {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .logs-header {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .log-item {
+            font-size: 11px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-family: monospace;
+        }
+        
+        .log-time {
+            color: #666;
+        }
+        
+        .log-level-info {
+            color: #22c55e;
+        }
+        
+        .log-level-warn {
+            color: #f59e0b;
+        }
+        
+        .log-level-error {
+            color: #ef4444;
+        }
+        
+        .log-message {
+            color: #ccc;
+        }
+        
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 0 6px 6px 0;
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        .info-box strong {
+            color: #3b82f6;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .btn-test {
+            flex: 1;
+            padding: 8px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #ccc;
+            font-size: 11px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .btn-test:hover {
+            background: rgba(255,255,255,0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            灯塔自动化测试
+        </h1>
+        <div class="version">单窗口测试版 v1.0</div>
+    </div>
+    
+    <div class="status-card">
+        <div class="status-row">
+            <span class="status-label">运行状态</span>
+            <span class="status-value stopped" id="status-text">已停止</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">当前状态</span>
+            <span class="status-value" id="current-state">空闲</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">运行时间</span>
+            <span class="status-value" id="run-time">00:00</span>
+        </div>
+    </div>
+    
+    <div class="actions">
+        <button class="btn btn-start" id="btn-start">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            开始测试
+        </button>
+        <button class="btn btn-stop" id="btn-stop" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="6" y="4" width="4" height="16"></rect>
+                <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+            停止
+        </button>
+    </div>
+    
+    <div class="logs-section" id="logs-container">
+        <div class="logs-header">
+            <span>运行日志</span>
+            <span id="log-count">0 条</span>
+        </div>
+        <div id="logs-list">
+            <div class="log-item">
+                <span class="log-time">--:--:--</span>
+                <span class="log-message">等待启动...</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-buttons">
+        <button class="btn-test" id="btn-clear-logs">清空日志</button>
+        <button class="btn-test" id="btn-refresh">刷新状态</button>
+    </div>
+    
+    <div class="info-box">
+        <strong>使用说明：</strong><br>
+        1. 先打开游戏页面 https://app.thebeacon.gg<br>
+        2. 确保游戏已加载完成（能看到游戏画面）<br>
+        3. 点击"开始测试"按钮<br>
+        4. 观察页面右上角的调试面板
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>
